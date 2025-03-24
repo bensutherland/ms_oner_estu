@@ -189,12 +189,25 @@ fastman(m = dapc_var_all.df, chr = "chr.num", bp = "pos"
 dev.off()
 
 
-#### 04. 
+#### 05. Separate populations ####
+obj_annot.list <- seppop(x = obj_annot) # separate pops
 
+#### 04. Stuart analysis (Estu and Summer) ####
+# Inspect Stuart system only, incl the EStu and Summer Stuart
+obj.Stu <- repool(obj_annot.list$Bivouac
+               , obj_annot.list$Paula
+               , obj_annot.list$Dust
+               , obj_annot.list$Driftwood
+               , obj_annot.list$Felix
+               , obj_annot.list$Takla
+               , obj_annot.list$Pinchi
+               , obj_annot.list$Middle
+               , obj_annot.list$Kuzkwa
+               , obj_annot.list$Tachie
+        )
 
 
 #### 05. EStu-only analysis  ####
-obj_annot.list <- seppop(x = obj_annot)
 obj.EStu <- repool(obj_annot.list$Bivouac
                    , obj_annot.list$Paula
                    , obj_annot.list$Dust

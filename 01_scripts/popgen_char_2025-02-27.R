@@ -37,6 +37,26 @@ obj
 indNames(x = obj) # indiv names
 pop(obj) # pop has not yet been assigned
 
+## Create region-specific VCF objects
+# Stuart 
+retain_samples_stuart.vec <- colnames(my_vcf@gt)[grep(pattern = "Bivouac|Paula|Dust|Driftwood|Felix|Takla|Pinchi|Middle|Kuzkwa|Tachie"
+                         , x = colnames(my_vcf@gt), perl = T)]
+length(retain_samples_stuart.vec)
+my_vcf_stuart <- my_vcf[, c("FORMAT", retain_samples_stuart.vec)]
+my_vcf_stuart
+
+# Convert to genind
+obj_stuart <- vcfR2genind(x = my_vcf_stuart)
+
+# Prepare a pop vector
+pop.vec <- indNames(obj_stuart)
+pop.vec <- gsub("[0-9]+", replacement = "", x = pop.vec) # Remove digits (there is not always an underscore)
+pop.vec <- gsub("\\_.*", replacement = "", x = pop.vec)  # Remove everything after the first underscore
+pop.vec <- gsub(pattern = "R$", replacement = "", x = pop.vec, ignore.case = F)
+table(pop.vec) # confirm it worked
+
+pop(obj_stuart) <- pop.vec
+
 
 #### 02. Annotate samples ####
 ### Create popmap
@@ -90,6 +110,12 @@ present_pops.df <- read.delim2(file = "00_archive/colours.csv", header = T, sep 
 # Drop monomorphic loci (if present)
 drop_loci(df = obj_annot, drop_monomorphic = T)
 obj_annot <- obj_filt
+
+
+# Drop monomorphic loci (if present)
+drop_loci(df = obj_stuart, drop_monomorphic = T)
+obj_stuart <- obj_filt
+
 
 
 ## PCA
@@ -189,22 +215,78 @@ fastman(m = dapc_var_all.df, chr = "chr.num", bp = "pos"
 dev.off()
 
 
-#### 05. Separate populations ####
-obj_annot.list <- seppop(x = obj_annot) # separate pops
+#### 05. Separate populations, EStu ####
+## DAPC, supervised, all samples
+dapc_from_genind(data = obj_stuart
+                 , plot_allele_loadings = TRUE  # plot and export the discrim. fn. locus variance contributions? 
+                 , colour_file = "00_archive/colours.csv"           # use custom colours 
+                 , n.pca = 10, n.da = 2         # number PC axes to use and discriminant functions to retain
+                 , scree.da = TRUE              # plot scree plot for DF
+                 , scree.pca = TRUE, posi.pca = "topright"     # plot PCA scree plot
+                 , dapc.width = 7, dapc.height = 5             # PDF filesize for scatterplot
+) 
 
-#### 04. Stuart analysis (Estu and Summer) ####
-# Inspect Stuart system only, incl the EStu and Summer Stuart
-obj.Stu <- repool(obj_annot.list$Bivouac
-               , obj_annot.list$Paula
-               , obj_annot.list$Dust
-               , obj_annot.list$Driftwood
-               , obj_annot.list$Felix
-               , obj_annot.list$Takla
-               , obj_annot.list$Pinchi
-               , obj_annot.list$Middle
-               , obj_annot.list$Kuzkwa
-               , obj_annot.list$Tachie
-        )
+# Retain outputs
+dapc_var_contrib_rename.FN <- "03_results/dapc_variance_contrib_all_stuart.csv"
+file.copy(from = "03_results/dapc_variance_contrib.csv", to = dapc_var_contrib_rename.FN
+          , overwrite = T
+)
+
+file.copy(from = "03_results/sample_DAPC.pdf", to = "03_results/sample_DAPC_all_stuart.pdf", overwrite = T)
+file.copy(from = "03_results/DAPC_loadings.pdf", to = "03_results/DAPC_loadings_all_stuart.pdf", overwrite = T)
+
+## Inspect loadings
+dapc_var_all.df <- read.delim2(file = dapc_var_contrib_rename.FN, header = T, sep = ",")
+dapc_var_all.df <- as.data.frame(dapc_var_all.df)
+head(dapc_var_all.df)
+tail(dapc_var_all.df)
+str(dapc_var_all.df)
+dapc_var_all.df$LD1 <- as.numeric(dapc_var_all.df$LD1)
+dapc_var_all.df$LD2 <- as.numeric(dapc_var_all.df$LD2)
+
+# Keep only one representative allele (remove redundancy)
+nrow(dapc_var_all.df) # 865474 records
+length(grep(pattern = "\\.0$", x = dapc_var_all.df$mname, perl = T)) # keep only one allele (redundancy)
+
+dapc_var_all.df <- dapc_var_all.df[grep(pattern = "\\.0$", x = dapc_var_all.df$mname, perl = T, invert = T), ] 
+nrow(dapc_var_all.df) # 432737 records
+
+# Obtain chromosome and positional info
+dapc_var_all.df <- separate(data = dapc_var_all.df, col = "mname", into = c("chr", "pos"), sep = "_", remove = F)
+table(dapc_var_all.df$chr)
+dapc_var_all.df$chr.num <- dapc_var_all.df$chr # prepare for numeric
+
+dapc_var_all.df$chr.num <- gsub(pattern = "a", replacement = ".1", x = dapc_var_all.df$chr.num)
+dapc_var_all.df$chr.num <- gsub(pattern = "b", replacement = ".2", x = dapc_var_all.df$chr.num)
+
+dapc_var_all.df$chr.num <- as.numeric(dapc_var_all.df$chr.num)
+
+dapc_var_all.df$pos <- as.numeric(dapc_var_all.df$pos)
+
+str(dapc_var_all.df)
+
+# Order 
+dapc_var_all.df <- dapc_var_all.df[order(dapc_var_all.df$chr.num), ]
+head(dapc_var_all.df)
+tail(dapc_var_all.df)
+
+# Plot 
+pdf(file = "03_results/DAPC_loadings_on_chr_all_stuart_LD1.pdf", width = 13, height = 5.5)
+par(mfrow=c(1,1), mar = c(5,6,4,2)+0.1, mgp = c(5.5, 2.5, 0))
+fastman(m = dapc_var_all.df, chr = "chr.num", bp = "pos"
+        , p = "LD1", logp = F
+        , ylim = c(0, max(dapc_var_all.df$LD1)+ max(dapc_var_all.df$LD1)*0.5)
+)
+dev.off()
+
+pdf(file = "03_results/DAPC_loadings_on_chr_all_stuart_LD2.pdf", width = 13, height = 5.5)
+fastman(m = dapc_var_all.df, chr = "chr.num", bp = "pos"
+        , p = "LD2", logp = F
+        , ylim = c(0, max(dapc_var_all.df$LD2)+ max(dapc_var_all.df$LD2)*0.5)
+)
+dev.off()
+
+
 
 
 #### 05. EStu-only analysis  ####

@@ -15,11 +15,16 @@
 
 # Source functions by sourcing simple_pop_stats_start.R ( https://github.com/bensutherland/simple_pop_stats )
 
+# Load additional libraries
+library("fastman")
+
 # User set variables
 #vcf.FN              <- "02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q99_avgDP10_biallele_minDP10_maxDP1000_minGQ20_miss0.15_w_tags_MAF0.05_5w50kb.vcf" # MAF and LD filtered
 vcf.FN <- "02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q99_avgDP10_biallele_minDP10_maxDP1000_minGQ20_miss0.15.vcf" # no MAF or LD filter
 max_missing         <- 0.3
-
+run_pca    <- FALSE
+run_dendro <- FALSE
+bootstraps <- 10000 # set number bootstraps to run for dendro
 
 #### 01. Load genotypes ####
 # Load input VCF
@@ -82,38 +87,71 @@ present_pops.df <- read.delim2(file = "00_archive/colours.csv", header = T, sep 
 
 
 #### 04. All sample analysis ####
+# Drop monomorphic loci (if present)
+drop_loci(df = obj_annot, drop_monomorphic = T)
+obj_annot <- obj_filt
+
+
 ## PCA
-pca_from_genind(data = obj_annot, PCs_ret = 4, plot_eigen = T, plot_allele_loadings = F, retain_pca_obj = F
-                , plot_ellipse = T, colour_file = "00_archive/colours.csv"
-                )
+if(run_pca==TRUE){
+  
+  pca_from_genind(data = obj_annot, PCs_ret = 4, plot_eigen = T, plot_allele_loadings = F, retain_pca_obj = F
+                  , plot_ellipse = T, colour_file = "00_archive/colours.csv"
+  )
+  
+}else{
+  
+  print("Not running PCA, as per user inputs")
+  
+}
 
 ## Dendrogram
-bootstraps <- 10000 # set number bootstraps to run
+if(run_dendro==TRUE){
+
 make_tree(bootstrap = T, boot_obj = obj_annot, nboots = bootstraps
           , dist_metric = "edwards.dist", separated = FALSE
           )
+}else{
+  
+  print("Not running dendrogram, as per user inputs")
+  
+}
 
 
-## DAPC, supervised
+## DAPC, supervised, all samples
 dapc_from_genind(data = obj_annot
                  , plot_allele_loadings = TRUE  # plot and export the discrim. fn. locus variance contributions? 
                  , colour_file = "00_archive/colours.csv"           # use custom colours 
-                 , n.pca = 10, n.da = 1         # number PC axes to use and discriminant functions to retain
+                 , n.pca = 10, n.da = 2         # number PC axes to use and discriminant functions to retain
                  , scree.da = TRUE              # plot scree plot for DF
                  , scree.pca = TRUE, posi.pca = "topright"     # plot PCA scree plot
                  , dapc.width = 7, dapc.height = 5             # PDF filesize for scatterplot
 ) 
 
-# Inspect loadings
-dapc_var_all.df <- read.delim2(file = "03_results/dapc_variance_contrib.csv", header = T, sep = ",")
+# Retain outputs
+dapc_var_contrib_all.FN <- "03_results/dapc_variance_contrib_all_samples.csv"
+file.copy(from = "03_results/dapc_variance_contrib.csv", to = dapc_var_contrib_all.FN
+          , overwrite = T
+          )
+
+file.copy(from = "03_results/sample_DAPC.pdf", to = "03_results/sample_DAPC_all_samples.pdf", overwrite = T)
+file.copy(from = "03_results/DAPC_loadings.pdf", to = "03_results/DAPC_loadings_all_samples.pdf", overwrite = T)
+
+## Inspect loadings
+dapc_var_all.df <- read.delim2(file = dapc_var_contrib_all.FN, header = T, sep = ",")
 dapc_var_all.df <- as.data.frame(dapc_var_all.df)
 head(dapc_var_all.df)
 tail(dapc_var_all.df)
+str(dapc_var_all.df)
+dapc_var_all.df$LD1 <- as.numeric(dapc_var_all.df$LD1)
+dapc_var_all.df$LD2 <- as.numeric(dapc_var_all.df$LD2)
 
 # Keep only one representative allele (remove redundancy)
-nrow(dapc_var_all.df) # 204206 records
+nrow(dapc_var_all.df) # 919400 records
+length(grep(pattern = "\\.0$", x = dapc_var_all.df$mname, perl = T)) # keep only one allele (redundancy)
+
 dapc_var_all.df <- dapc_var_all.df[grep(pattern = "\\.1", x = dapc_var_all.df$mname, perl = T, invert = T), ] 
-nrow(dapc_var_all.df) # 102103 records
+nrow(dapc_var_all.df) # 459700 records
 
 # Obtain chromosome and positional info
 dapc_var_all.df <- separate(data = dapc_var_all.df, col = "mname", into = c("chr", "pos"), sep = "_", remove = F)
@@ -135,8 +173,7 @@ head(dapc_var_all.df)
 tail(dapc_var_all.df)
 
 # Plot 
-library("fastman")
-pdf(file = "03_results/DAPC_loadings_on_chr_all_samples.pdf", width = 13, height = 5.5)
+pdf(file = "03_results/DAPC_loadings_on_chr_all_samples_LD1.pdf", width = 13, height = 5.5)
 par(mfrow=c(1,1), mar = c(5,6,4,2)+0.1, mgp = c(5.5, 2.5, 0))
 fastman(m = dapc_var_all.df, chr = "chr.num", bp = "pos"
         , p = "LD1", logp = F
@@ -144,10 +181,16 @@ fastman(m = dapc_var_all.df, chr = "chr.num", bp = "pos"
         )
 dev.off()
 
-# NOTE: save output into a subfolder or else will be overwritten
+pdf(file = "03_results/DAPC_loadings_on_chr_all_samples_LD2.pdf", width = 13, height = 5.5)
+fastman(m = dapc_var_all.df, chr = "chr.num", bp = "pos"
+        , p = "LD2", logp = F
+        , ylim = c(0, max(dapc_var_all.df$LD2)+ max(dapc_var_all.df$LD2)*0.5)
+)
+dev.off()
 
 
-### TODO: make separate script?
+#### 04. 
+
 
 
 #### 05. EStu-only analysis  ####

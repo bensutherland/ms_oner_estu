@@ -48,4 +48,4 @@ cp 14_extract_mhap/*.vcf ../simple_pop_stats/02_input_data/
 ```
 
 #### Population genetic analyses ####
-Follow the instructions in the script `popgen_char_2025-02-27.R`.     
+Follow the instructions in the script `01_scripts/popgen_char_2025-02-27.R`.     

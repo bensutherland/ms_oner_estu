@@ -49,3 +49,12 @@ cp 14_extract_mhap/*.vcf ../simple_pop_stats/02_input_data/
 
 #### Population genetic analyses ####
 Follow the instructions in the script `01_scripts/popgen_char_2025-02-27.R`.     
+
+
+To see raw genotypes of any specific locus, use the following code:    
+```
+# Replace <locus> with target position
+bcftools view 02_input_data/*_miss0.15.vcf | grep -vE '^##' - | grep -E '^#|<locus>' - > 03_results/<locus>_genos.txt
+```
+Then open in a spreadsheet and transpose to get long form.    
+

@@ -4,7 +4,8 @@
 
 # Requires: 
 #   - simple_pop_stats repository
-#   - VCF file
+#   - VCF file for all samples, not MAF, not LD filtered
+#   - VCF file for EStu only best collections, MAF and LD filtered
 
 # note: all code and directories listed are within the simple_pop_stats repository
 # note: all output will go into simple_pop_stats/03_results
@@ -21,10 +22,13 @@ library("fastman")
 # User set variables
 #vcf.FN              <- "02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q99_avgDP10_biallele_minDP10_maxDP1000_minGQ20_miss0.15_w_tags_MAF0.05_5w50kb.vcf" # MAF and LD filtered
 vcf.FN <- "02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q99_avgDP10_biallele_minDP10_maxDP1000_minGQ20_miss0.15.vcf" # no MAF or LD filter
+vcf_estu.FN <- "02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q99_avgDP10_biallele_minDP10_maxDP1000_minGQ20_miss0.15_estu_limited_w_tags_MAF0.01_5w50kb.vcf" # EStu-sp MAF and LD for popgen
+
 max_missing <- 0.3
 run_pca     <- FALSE
 run_dendro  <- FALSE
 bootstraps  <- 10000 # set number bootstraps to run for dendro
+
 
 #### 01. Load genotypes and prepare datasets ####
 # Load input VCF

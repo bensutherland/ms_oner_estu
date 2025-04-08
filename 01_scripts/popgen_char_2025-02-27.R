@@ -20,9 +20,9 @@
 library("fastman")
 
 # User set variables
-#vcf.FN              <- "02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q99_avgDP10_biallele_minDP10_maxDP1000_minGQ20_miss0.15_w_tags_MAF0.05_5w50kb.vcf" # MAF and LD filtered
-vcf.FN <- "02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q99_avgDP10_biallele_minDP10_maxDP1000_minGQ20_miss0.15.vcf" # no MAF or LD filter
-vcf_estu.FN <- "02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q99_avgDP10_biallele_minDP10_maxDP1000_minGQ20_miss0.15_estu_limited_w_tags_MAF0.01_5w50kb.vcf" # EStu-sp MAF and LD for popgen
+vcf.FN              <- "02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q99_avgDP10_biallele_minDP10_maxDP1000_minGQ20_miss0.15_w_tags_MAF0.05_5w50kb.vcf" # MAF and LD filtered
+#vcf.FN <- "02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q99_avgDP10_biallele_minDP10_maxDP1000_minGQ20_miss0.15.vcf" # no MAF or LD filter
+#vcf_estu.FN <- "02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q99_avgDP10_biallele_minDP10_maxDP1000_minGQ20_miss0.15_estu_limited_w_tags_MAF0.01_5w50kb.vcf" # EStu-sp MAF and LD for popgen
 
 max_missing <- 0.3
 run_pca     <- FALSE
@@ -171,6 +171,13 @@ obj_estu <- obj_filt
 
 
 #### 02. All sample analysis ####
+## Average FST in the region
+calculate_FST(format = "genind", dat = obj, separated = F, bootstrap = F) ### Note: should work on bootstrap option ###
+calculate_FST(format = "genind", dat = obj, separated = F, bootstrap = T) ### Note: should work on bootstrap option ###
+
+
+
+
 ## PCA
 if(run_pca==TRUE){
   

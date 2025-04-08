@@ -1,39 +1,44 @@
 # Early Stuart sockeye salmon population genetics
-Code to support analysis of Early Stuart sockeye metapopulation
+Code to support analysis of Early Stuart sockeye metapopulation within the context of the upper Fraser River sockeye.     
 
-### 01. Whole-genome resequencing analysis ###
+### Whole-genome resequencing analysis ###
 #### Requirements ####
 - bcftools    
-- simple_pop_stats
 - amplitools 
+- simple_pop_stats
 
-Note: all code is run from the main directory of `simple_pop_stats`, unless otherwise specified.    
-Clone both `simple_pop_stats` and `amplitools`.     
+Code is run from individual repositories, as indicated in the section.     
+Clone `amplitools` and `simple_pop_stats`.     
 
 #### Data sources ####
 Download source VCF file [Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr.vcf.gz](https://gsajournals.figshare.com/articles/dataset/Supplemental_Material_for_Christensen_et_al_2024/25705428).     
-Put in `02_input_data`.        
+Put in `amplitools_*/02_input_data`.        
 
-#### Reduce to only samples of interest ####
+#### Subset samples to target region ####
 Keep only samples from populations of interest from the BCF file:    
 ```
+# Start by choosing scope, either Option A or Option B, as listed below
+
+# Option A: Stuart and Nadina/Stellako only
 bcftools query -l 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr.vcf.gz | grep -E 'Bivouac|BowronR|Driftwood|Dust|Felix|Kuzkwa|MiddleR|Nadina|Paula|Pinchi|Stellako|Tachie|Takla_S' - > 02_input_data/samples_to_retain.txt
 
+# Option B: All upper Fraser River
+bcftools query -l 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr.vcf.gz | grep -E 'Bivouac|Driftwood|Dust|Felix|Paula|Takla|Kuzkwa|Middle|Pinchi|Tachie|Stellako|Nadina|Bowron|Horsefly|BlueLead|McKinley|Mitchell|horsefly|Wasko|Quesnel|Chilko|Taseko' - | grep -vE '\_K\_' - > 02_input_data/samples_to_retain.txt
+
+# Use sample file to subset the VCF file to only these samples 
 bcftools view -S 02_input_data/samples_to_retain.txt 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr.vcf.gz -Ob -o 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained.bcf    
 
-# Copy file to amplitools
-cp 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained.bcf ../amplitools/14_extract_mhap/
 ```
 
-#### Filter target BCF file ####
+#### Filter variants in subset BCF file ####
 This section is executed from the amplitools directory.     
 
-```
-# Filter the BCF file as per amplitools standards
-01_scripts/filter_bcf.sh
+Filter using `01_scripts/filter_bcf.sh` by updating the source folder, BCF file name, number cores, other parameters as needed.    
 
+Additional filters:       
+```
+# Create filtered dataset for population genetic uses
 # Follow amplitools README to add all annotations and to filter based on MAF (MAF 0.05).    
-# Caution: intermediate files will fill up storage rapidly! (update once resolved in amplitools)
 
 # Generate an LD filtered dataset for some analyses:    
 bcftools +prune -w 50kb -m 0.5 -Ob -o 14_extract_mhap/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q99_avgDP10_biallele_minDP10_maxDP1000_minGQ20_miss0.15_w_tags_MAF0.05_5w50kb.bcf 14_extract_mhap/Oner*_w_tags_MAF0.05.bcf`     

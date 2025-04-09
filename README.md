@@ -38,15 +38,17 @@ Filter using `01_scripts/filter_bcf.sh` by updating the source folder, BCF file 
 Additional filters:       
 ```
 # Create filtered dataset for population genetic uses
-# Follow amplitools README to add all annotations and to filter based on MAF (MAF 0.05).    
+# MAF filter, first add tags
+bcftools +fill-tags 02_input_data/Oner.*_maxDP10000_minGQ20_miss0.15.bcf -Ob -o 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q20_avgDP7_biallele_minDP7_maxDP10000_minGQ20_miss0.15_w_tags.bcf
 
-# Generate an LD filtered dataset for some analyses:    
-bcftools +prune -w 50kb -m 0.5 -Ob -o 14_extract_mhap/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q99_avgDP10_biallele_minDP10_maxDP1000_minGQ20_miss0.15_w_tags_MAF0.05_5w50kb.bcf 14_extract_mhap/Oner*_w_tags_MAF0.05.bcf`     
+# Then filter on tags for MAF
+bcftools view -i 'MAF > 0.05' 02_input_data/*_w_tags.bcf -Ob -o 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q20_avgDP7_biallele_minDP7_maxDP10000_minGQ20_miss0.15_w_tags_MAF0.05.bcf
+
+# Generate an LD filtered, compressed VCF file for population genetic analyses     
+bcftools +prune -w 50kb -m 0.5 -Oz -o 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q20_avgDP7_biallele_minDP7_maxDP10000_minGQ20_miss0.15_w_tags_MAF0.05_5w50kb.vcf.gz 02_input_data/*_MAF0.05.bcf
 
 # Convert the BCF file to VCF file to be able to be read into R via vcfR    
 bcftools view 14_extract_mhap/Oner.*_MAF0.05_5w50kb.bcf -Ov -o 14_extract_mhap/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q99_avgDP10_biallele_minDP10_maxDP1000_minGQ20_miss0.15_w_tags_MAF0.05_5w50kb.vcf
-
-bcftools view 14_extract_mhap/Oner.*_MAF0.05.bcf -Ov -o 14_extract_mhap/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q99_avgDP10_biallele_minDP10_maxDP1000_minGQ20_miss0.15_w_tags_MAF0.05.vcf
 
 # Copy both of the VCF files back to simple_pop_stats
 cp 14_extract_mhap/*.vcf ../simple_pop_stats/02_input_data/   

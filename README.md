@@ -7,12 +7,11 @@ Code to support analysis of Early Stuart sockeye metapopulation within the conte
 - amplitools 
 - simple_pop_stats
 
-Code is run from individual repositories, as indicated in the section.     
+Commands are run from individual repositories, as indicated in the section.     
 Clone `amplitools` and `simple_pop_stats`.     
 
 #### Data sources ####
-Download source VCF file [Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr.vcf.gz](https://gsajournals.figshare.com/articles/dataset/Supplemental_Material_for_Christensen_et_al_2024/25705428).     
-Put in `amplitools_*/02_input_data`.        
+Download source VCF file [Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr.vcf.gz](https://gsajournals.figshare.com/articles/dataset/Supplemental_Material_for_Christensen_et_al_2024/25705428) and put it in `amplitools_*/02_input_data`.        
 
 #### Subset samples to target region ####
 Keep only samples from populations of interest from the BCF file:    
@@ -47,11 +46,11 @@ bcftools view -i 'MAF > 0.05' 02_input_data/*_w_tags.bcf -Ob -o 02_input_data/On
 # Generate an LD filtered, compressed VCF file for population genetic analyses     
 bcftools +prune -w 50kb -m 0.5 -Oz -o 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q20_avgDP7_biallele_minDP7_maxDP10000_minGQ20_miss0.15_w_tags_MAF0.05_5w50kb.vcf.gz 02_input_data/*_MAF0.05.bcf
 
-# Convert the BCF file to VCF file to be able to be read into R via vcfR    
-bcftools view 14_extract_mhap/Oner.*_MAF0.05_5w50kb.bcf -Ov -o 14_extract_mhap/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_noindel5_miss0.15_SNP_q99_avgDP10_biallele_minDP10_maxDP1000_minGQ20_miss0.15_w_tags_MAF0.05_5w50kb.vcf
+# Copy the VCF file to simple_pop_stats
+cp 02_input_data/*5w50kb.vcf.gz ../simple_pop_stats/02_input_data/   
 
-# Copy both of the VCF files back to simple_pop_stats
-cp 14_extract_mhap/*.vcf ../simple_pop_stats/02_input_data/   
+# Change directory to simple_pop_stats
+cd ../simple_pop_stats_v.0.2/
 ```
 
 Additional dataset: create another VCF file specific to only the four collections from EStu that have the most samples, then conduct MAF and LD filters. This will be used for population genetic analysis within EStu. Do this from within `simple_pop_stats`.        
@@ -71,6 +70,94 @@ bcftools +prune -w 50kb -m 0.5 -Ov -o 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD
 
 ```
 ...this will be used as an input in the below RScript.    
+
+
+Additional dataset: Chilcotin, selection dataset
+```
+# Create sample list from the all loci file
+bcftools query -l 02_input_data/*_w_tags.bcf | grep -E 'Chilko|Taseko' - > 02_input_data/samples_to_retain_chilcotin.txt
+
+# Subset
+bcftools view -S 02_input_data/samples_to_retain_chilcotin.txt 02_input_data/*_miss0.15_w_tags.bcf -Ob -o 02_input_data/chilcotin.bcf
+
+# Fill tags again to recalculate and filter on MAF
+bcftools +fill-tags 02_input_data/chilcotin.bcf -Ob -o 02_input_data/chilcotin_w_tags.bcf
+bcftools view -i 'MAF > 0.01' 02_input_data/chilcotin_w_tags.bcf -Oz -o 02_input_data/chilcotin_w_tags_maf0.01.vcf.gz
+
+# Clean space
+rm 02_input_data/chilcotin.bcf 02_input_data/chilcotin_w_tags.bcf
+
+
+# Copy to simple_pop_stats
+
+# This will be used by 01_scripts/chilcotin.R
+```
+
+Additional dataset: Quesnel/Horsefly, selection dataset
+```
+# Create sample list from the all loci file
+bcftools query -l 02_input_data/*_w_tags.bcf | grep -E 'Horsefly|BlueLead|McKinley|Mitchell|horsefly|Wasko|Quesnel' - > 02_input_data/samples_to_retain_quesnel.txt
+
+# Subset
+bcftools view -S 02_input_data/samples_to_retain_quesnel.txt 02_input_data/*_miss0.15_w_tags.bcf -Ob -o 02_input_data/quesnel.bcf
+
+# Fill tags again to recalculate and filter on MAF
+bcftools +fill-tags 02_input_data/quesnel.bcf -Ob -o 02_input_data/quesnel_w_tags.bcf
+bcftools view -i 'MAF > 0.01' 02_input_data/quesnel_w_tags.bcf -Oz -o 02_input_data/quesnel_w_tags_maf0.01.vcf.gz
+bcftools view -i 'MAF > 0.05' 02_input_data/quesnel_w_tags.bcf -Oz -o 02_input_data/quesnel_w_tags_maf0.05.vcf.gz
+
+# For testing, produce a LD-filtered
+bcftools +prune -w 50kb -m 0.5 -Oz -o 02_input_data/quesnel_w_tags_maf0.05_5w50kb.vcf.gz 02_input_data/quesnel_w_tags_maf0.05.vcf.gz
+
+# Clean space
+rm 02_input_data/quesnel.bcf 02_input_data/quesnel_w_tags.bcf
+
+# Move outputs to simple_pop_stats
+
+# This will be used by 01_scripts/quesnel.R
+```
+
+Additional dataset: Stuart, selection dataset      
+```
+# Create sample list from the all loci file
+bcftools query -l 02_input_data/*_w_tags.bcf | grep -E 'Bivouac|Driftwood|Dust|Felix|Paula|Takla|Kuzkwa|Middle|Pinchi|Tachie' - > 02_input_data/samples_to_retain_stuart.txt
+
+# Subset
+bcftools view -S 02_input_data/samples_to_retain_stuart.txt 02_input_data/*_miss0.15_w_tags.bcf -Ob -o 02_input_data/stuart.bcf
+
+# Selected chromosome only
+bcftools index 02_input_data/stuart.bcf
+bcftools view 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained.bcf --regions 18 -Ob -o 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_chr18.bcf 
+
+# MAF filter (light)
+bcftools +fill-tags 02_input_data/stuart_chr18.bcf -Ob -o 02_input_data/stuart_chr18_w_tags.bcf
+bcftools view -i 'MAF > 0.01' 02_input_data/stuart_chr18_w_tags.bcf -Oz -o 02_input_data/stuart_chr18_w_tags_maf0.01.vcf.gz
+
+# Move outputs to simple_pop_stats
+```
+
+
+
+
+
+
+#### All populations, all loci, one chromosome ####
+To simplify the dataset, isolate to a single chromosome and inspect across all populations.     
+
+e.g., isolate to Chr18 (note: the source BCF file must be indexed for the following to work)       
+```
+# Subset the chromosome with bcftools 
+bcftools view 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained.bcf --regions 18 -Ob -o 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_chr18.bcf 
+
+```
+
+
+
+
+
+
+
+
 
 
 #### Population genetic analyses ####

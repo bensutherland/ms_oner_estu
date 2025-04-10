@@ -140,5 +140,41 @@ dev.off()
 #### HERE ####
 
 
+
+##### PLOT RESULTS OF GEMMA ANALYSIS ####
+dataset.id <- "early_summer_with_taseko"
+gemma_output.df <- read.delim2(file = "03_results/output/gwas.assoc.txt")
+gemma_output.df <- as.data.frame(gemma_output.df)
+
+gemma_output.df <- separate(data = gemma_output.df, col = "rs", into = c("chr", "pos"), sep = "__"
+                            , remove = F)
+gemma_output.df$chr.num <- gemma_output.df$chr # prepare for numeric
+
+gemma_output.df$chr.num <- gsub(pattern = "a", replacement = ".1", x = gemma_output.df$chr.num)
+gemma_output.df$chr.num <- gsub(pattern = "b", replacement = ".2", x = gemma_output.df$chr.num)
+
+gemma_output.df$chr.num <- as.numeric(gemma_output.df$chr.num)
+
+gemma_output.df$pos <- as.numeric(gemma_output.df$pos)
+
+gemma_output.df$p_wald <- as.numeric(gemma_output.df$p_wald)
+
+str(gemma_output.df)
+
+# Order 
+gemma_output.df <- gemma_output.df[order(gemma_output.df$chr.num, gemma_output.df$pos), ]
+head(gemma_output.df)
+tail(gemma_output.df)
+
+# Plot 
+pdf(file = paste0("03_results/Manhattan_plot", dataset.id, ".pdf"), width = 13, height = 5.5)
+par(mfrow=c(1,1), mar = c(5,6,4,2)+0.1, mgp = c(5.5, 2.5, 0))
+fastman(m = gemma_output.df, chr = "chr.num", bp = "pos"
+        , p = "p_wald", logp = T
+        , maxP = NULL
+        #, ylim = c(0, max(dapc_var.df$LD1)+ max(dapc_var.df$LD1)*0.5)
+)
+dev.off()
+
 #### 04. Save output ####
 # optional. 

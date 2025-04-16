@@ -152,7 +152,15 @@ bcftools view 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained.b
 ```
 
 
+To obtain only a region within the chromosome:      
+```
+# Create a selected regions file
+bcftools view 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_chr18.vcf.gz | grep -vE '^#' - | awk '$2 > 55000000 && $2 < 65000000 { print $1 "\t" $2 }' - > 02_input_data/selected_snp_region_file.txt
 
+# Subset with selected regions file to produce compressed VCF file
+bcftools view --regions-file 02_input_data/selected_snp_region_file.txt 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_chr18.vcf.gz -Oz -o 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_chr18_sel_region.vcf.gz
+
+```
 
 
 

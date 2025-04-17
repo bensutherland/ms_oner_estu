@@ -25,8 +25,7 @@ library("fastman")
 # User set variables
 vcf.FN <- "02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_w_tags_MAF0.05_5w50kb.vcf.gz" # MAF and LD filtered
 
-all_sample_analysis <- FALSE
-max_missing <- 0.3
+all_sample_analysis <- TRUE
 run_pca     <- TRUE
 run_dendro  <- TRUE
 run_FST     <- TRUE
@@ -78,7 +77,7 @@ if(all_sample_analysis==TRUE){
     present_pops.df <- as.data.frame(present_pops.df)
     
     unique_cols <- c("cornflowerblue", "purple", "darkgreen", "darkkhaki", "blue4"
-                     , "blue", "darkgoldenrod", "aquamarine", "coral", "pink"
+                     , "blue", "cyan1", "aquamarine", "coral", "pink"
                      , "red", "yellow", "navajowhite", "deepskyblue", "darkgray"
                      , "black", "limegreen", "brown4", "cadetblue4", "sienna"
                      , "darkslateblue"
@@ -106,12 +105,13 @@ if(all_sample_analysis==TRUE){
   drop_loci(df = obj, drop_monomorphic = T)
   obj <- obj_filt
   
-  ## MAF filter (optional)
+  ## MAF filter
+  # not required, already conducted
   
   ## PCA
   if(run_pca==TRUE){
     
-    pca_from_genind(data = obj, PCs_ret = 4, plot_eigen = T, plot_allele_loadings = F, retain_pca_obj = F
+    pca_from_genind(data = obj, PCs_ret = 4, plot_eigen = T, plot_allele_loadings = F, retain_pca_obj = T
                     , plot_ellipse = T, colour_file = "00_archive/colours.csv"
     )
     
@@ -121,12 +121,14 @@ if(all_sample_analysis==TRUE){
     
   }
   
+  
   ## Dendrogram
   if(run_dendro==TRUE){
     
     make_tree(bootstrap = T, boot_obj = obj, nboots = bootstraps
               , dist_metric = "edwards.dist", separated = FALSE
     )
+    
   }else{
     
     print("Not running dendrogram, as per user inputs")
@@ -143,9 +145,7 @@ if(all_sample_analysis==TRUE){
     # Bootstrap option (95% CI)
     calculate_FST(format = "genind", dat = obj, separated = F, bootstrap = T) ### Note: should work on bootstrap option ###
     
-    
   }
-  
   
 }else{
   

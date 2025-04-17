@@ -1,5 +1,5 @@
 # Early Stuart sockeye salmon population genetics
-Code to support analysis of Early Stuart sockeye metapopulation within the context of the upper Fraser River sockeye.     
+Analysis of Early Stuart sockeye metapopulation within the context of the upper Fraser River sockeye.     
 
 ### Whole-genome resequencing analysis ###
 #### Requirements ####

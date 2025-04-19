@@ -72,6 +72,16 @@ pca_from_genind(data = obj_nechako, PCs_ret = 4, plot_eigen = T, plot_allele_loa
 pc1_v_pc2.plot_nechako <- pc1_v_pc2.plot
 pc3_v_pc4.plot_nechako <- pc3_v_pc4.plot
 
+# Save out
+###TODO: use post_pca function
+pdf(file = paste0(result.path, "pca_samples_PC1_v_PC2_nechako.pdf"), width = 11.5, height = 7.5)
+print(pc1_v_pc2.plot_nechako)
+dev.off()
+
+pdf(file = paste0(result.path, "pca_samples_PC3_v_PC4_nechako.pdf"), width = 11.5, height = 7.5)
+print(pc3_v_pc4.plot_nechako)
+dev.off()
+
 
 ## DAPC (with number DF based on PCA)
 dataset.id <- "nechako"
@@ -122,6 +132,18 @@ pca_from_genind(data = obj_chilcotin, PCs_ret = 4, plot_eigen = T, plot_allele_l
 
 pc1_v_pc2.plot_chilcotin <- pc1_v_pc2.plot
 pc3_v_pc4.plot_chilcotin <- pc3_v_pc4.plot
+
+# Save out
+###TODO: use post_pca function
+pdf(file = paste0(result.path, "pca_samples_PC1_v_PC2_chilcotin.pdf"), width = 11.5, height = 7.5)
+print(pc1_v_pc2.plot_chilcotin)
+dev.off()
+
+pdf(file = paste0(result.path, "pca_samples_PC3_v_PC4_chilcotin.pdf"), width = 11.5, height = 7.5)
+print(pc3_v_pc4.plot_chilcotin)
+dev.off()
+
+
 
 
 ## DAPC (with number DF based on PCA)

@@ -1,4 +1,6 @@
 *~
 *.txt
 .DS_Store
+*.fna*
+*.swp
 

@@ -90,3 +90,53 @@ bcftools view 02_input_data/*_miss0.15.vcf | grep -vE '^##' - | grep -E '^#|<loc
 ```
 Then open in a spreadsheet and transpose to get long form.    
 
+
+### Alternate method to calculate FST between populations ###
+Example, what is the FST between Paula and Driftwood:     
+```
+# Identify samples in Early Stuart
+bcftools query -l 02_input_data/*.vcf.gz | grep 'Paula' - > 02_input_data/samplelist_paula.txt
+bcftools query -l 02_input_data/*.vcf.gz | grep 'Driftwood' - > 02_input_data/samplelist_driftwood.txt
+bcftools query -l 02_input_data/*.vcf.gz | grep 'Dust' - > 02_input_data/samplelist_dust.txt
+bcftools query -l 02_input_data/*.vcf.gz | grep 'Bivouac' - > 02_input_data/samplelist_bivouac.txt
+
+# Identify samples in Stuart Summer (example)
+bcftools query -l 02_input_data/*.vcf.gz | grep 'Kuzkwa' - > 02_input_data/samplelist_kuzkwa.txt
+
+# Identify samples in Bowron R
+bcftools query -l 02_input_data/*.vcf.gz | grep 'Bowron' - > 02_input_data/samplelist_bowron.txt
+
+## Calculate pairwise FST
+# Paula vs. Driftwood
+vcftools --gzvcf 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_w_tags_MAF0.05_5w50kb.vcf.gz --weir-fst-pop 02_input_data/samplelist_paula.txt --weir-fst-pop 02_input_data/samplelist_driftwood.txt --out 03_results/paula_vs_driftwood
+
+# Paula vs. Dust
+vcftools --gzvcf 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_w_tags_MAF0.05_5w50kb.vcf.gz --weir-fst-pop 02_input_data/samplelist_paula.txt --weir-fst-pop 02_input_data/samplelist_dust.txt --out 03_results/paula_vs_dust
+
+# Paula vs. Bivouac
+vcftools --gzvcf 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_w_tags_MAF0.05_5w50kb.vcf.gz --weir-fst-pop 02_input_data/samplelist_paula.txt --weir-fst-pop 02_input_data/samplelist_bivouac.txt --out 03_results/paula_vs_bivouac
+
+# Driftwood vs. Dust
+vcftools --gzvcf 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_w_tags_MAF0.05_5w50kb.vcf.gz --weir-fst-pop 02_input_data/samplelist_driftwood.txt --weir-fst-pop 02_input_data/samplelist_dust.txt --out 03_results/driftwood_vs_dust
+
+# Driftwood vs. Bivouac
+vcftools --gzvcf 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_w_tags_MAF0.05_5w50kb.vcf.gz --weir-fst-pop 02_input_data/samplelist_driftwood.txt --weir-fst-pop 02_input_data/samplelist_bivouac.txt --out 03_results/driftwood_vs_bivouac
+
+# Bivouac vs. Dust
+vcftools --gzvcf 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_w_tags_MAF0.05_5w50kb.vcf.gz --weir-fst-pop 02_input_data/samplelist_bivouac.txt --weir-fst-pop 02_input_data/samplelist_dust.txt --out 03_results/bivouac_vs_dust
+
+
+## EStu vs. Stu-S
+# Paula vs. Kuzkwa
+vcftools --gzvcf 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_w_tags_MAF0.05_5w50kb.vcf.gz --weir-fst-pop 02_input_data/samplelist_paula.txt --weir-fst-pop 02_input_data/samplelist_kuzkwa.txt --out 03_results/paula_vs_kuzkwa
+
+## EStu vs. Bowron
+# Paula vs. Bowron
+vcftools --gzvcf 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_w_tags_MAF0.05_5w50kb.vcf.gz --weir-fst-pop 02_input_data/samplelist_paula.txt --weir-fst-pop 02_input_data/samplelist_bowron.txt --out 03_results/paula_vs_bowron
+
+
+# Results are in 03_results/*.log
+```
+
+
+

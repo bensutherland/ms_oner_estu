@@ -138,5 +138,46 @@ vcftools --gzvcf 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retaine
 # Results are in 03_results/*.log
 ```
 
+#### Analyze EStu limited only ####
+Create EStu limited bcf file:     
+```
+# Create samplelist
+bcftools query -l 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained.bcf | grep -E 'Paula|Driftwood|Dust|Bivouac' - > 02_input_data/EStu_limited_samplelist.txt
 
+# Use samplelist to limit the BCF file to only the target samples
+bcftools view -S 02_input_data/EStu_limited_samplelist.txt 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained.bcf -Ob -o 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_EStu_limited.bcf
+
+# Add tags
+bcftools +fill-tags 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_EStu_limited.bcf -Ob -o 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_EStu_limited_w_tags.bcf
+
+# Filter based on MAF, output vcf.gz
+bcftools view -i 'MAF > 0.01' 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_EStu_limited_w_tags.bcf -Oz -o 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_EStu_limited_w_tags_MAF0.01.vcf.gz   
+
+# OR
+bcftools view -i 'MAF > 0.05' 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_EStu_limited_w_tags.bcf -Ob -o 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_EStu_limited_w_tags_MAF0.05.bcf
+
+
+
+```
+
+
+
+
+
+
+
+
+Conduct FST analysis
+```
+# Set up filelists
+bcftools query -l 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_EStu_limited_w_tags_MAF0.01.vcf.gz | grep 'Paula' - > 02_input_data/samplelist_paula.txt
+
+bcftools query -l 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_EStu_limited_w_tags_MAF0.01.vcf.gz | grep 'Driftwood' - > 02_input_data/samplelist_driftwood.txt
+
+# Analyze with VCFtools
+vcftools --gzvcf 02_input_data/Oner.BiSNP.MM0.9.MAR0.01.MMD8-100.LCI.chr_retained_EStu_limited_w_tags_MAF0.01.vcf.gz --weir-fst-pop 02_input_data/samplelist_paula.txt --weir-fst-pop 02_input_data/samplelist_driftwood.txt --out 03_results/paula_vs_driftwood
+
+# Results are in 03_results/
+
+```
 

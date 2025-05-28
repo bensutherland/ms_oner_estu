@@ -95,7 +95,51 @@ dapc_from_genind(data = obj_nechako
                  , dapc.width = 7, dapc.height = 5             # PDF filesize for scatterplot
 ) 
 
+
 post_dapc(id = dataset.id) # post DAPC processing (incl. Manhattan plot with DAPC DF loadings)
+
+
+### Manual DAPC to customize output ###
+dapc <- dapc(data, n.pca = 10, n.da = 1)
+
+# Reporting
+print(paste0("Using custom colours file from ", colour_file))
+
+# Input colour file
+colours.df <- read.table(file = colour_file, header = T, sep = ",", stringsAsFactors = F)
+
+## Create a colours vector
+# Select only the pops that are in the data
+dapc_pops.df <- as.data.frame(rownames(dapc$means))
+colnames(dapc_pops.df) <- "pop" # note: this is the correct order
+
+# Merge the DAPC pops file with the colours file, maintaining order from pops file
+dapc_pops_colours.df <- merge(x = dapc_pops.df, colours.df, by.x = "pop", by.y = "collection", sort = F)
+
+# note: the colour must NOT be factor to correctly plot
+
+pdf(file = "03_results/sample_DAPC_nechako_custom.pdf", width = 9.90, height = 5)
+scatter(dapc
+        , col = dapc_pops_colours.df$colour
+        , scree.da = FALSE
+        , bg = "white"
+        , legend = F
+        , cleg = 0.9
+        , txt.leg=rownames(dapc$means)
+        , posi.leg = "topright"
+        , scree.pca = F
+        , posi.pca = "topleft"
+)
+
+legend("topright"
+       , inset=c(-0.04, 0.07)
+       , legend = dapc_pops_colours.df$pop
+       , fill = dapc_pops_colours.df$colour
+       , xpd = TRUE
+       , cex = 0.8
+       #, bg = "transparent"
+)
+dev.off()
 
 
 ##### Chilcotin headwaters #####
